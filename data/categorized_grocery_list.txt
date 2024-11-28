@@ -1,0 +1,54 @@
+Here is the categorized list of grocery items, sorted alphabetically within each category:
+
+**Bakery**
+• Bread
+• Flour
+• Granola Bars
+• Oatmeal
+
+**Beverages**
+• Almond-free options:
+  • Coffee
+  • Tea
+  • Soda (note: it's recommended to consider sugar content and calorie count)
+  • Orange Juice
+• Jam
+• Honey
+• Chocolate
+
+**Dairy**
+• Butter
+• Cheese
+• Eggs
+• Yogurt
+
+**Meat, Poultry, and Seafood**
+• Chicken Breast
+• Ground Beef
+• Salmon
+• Shrimp
+• Sausages
+
+**Produce**
+• Apples
+• Bananas
+• Bell Peppers
+• Broccoli
+• Carrots
+• Garlic
+• Lettuce
+• Mushrooms
+• Onions
+• Potatoes
+• Spinach
+• Strawberries
+• Tomatoes
+
+**Pantry**
+• Almonds
+• Cereal
+• Olive Oil
+• Pasta
+• Peanut Butter
+• Rice
+• Sugar
