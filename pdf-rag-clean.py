@@ -17,6 +17,106 @@ import ollama
 logging.basicConfig(level=logging.INFO)
 
 # Constants
+DOC_PATH = "./data/BOI.pdf"
+MODEL_NAME = "llama3.2"
+EMBEDDING_MODEL = "nomic-embed-text"
+VECTOR_STORE_NAME = "simple-rag"
 
 def ingest_pdf(doc_path):
-    logging.info()
+    """Load PDF documents"""
+    if os.path.exists(doc_path):
+        loader = UnstructuredPDFLoader(file_path=doc_path)
+        data=loader.load()
+        logging.info("PDF loaded successfully")
+        return data
+    else:
+        logging.error(f"PDF file not in {doc_path}")
+        return None
+    
+def split_document(documents):
+    """Split documents in smaller chunks"""
+    text_splitter = RecursiveCharacterTextSplitter(chunk_size=1200, chunk_overlap=300)
+    chunks = text_splitter.split_documents(documents)
+    logging.info("Docuements split into chunks")
+    return chunks
+
+def create_vector_db(chunks):
+    """Create a vector database for document chunks"""
+    # Pull the embedding model if not already available
+    ollama.pull(EMBEDDING_MODEL)
+
+    vector_db = Chroma.from_documents(
+    documents=chunks,
+    embedding=OllamaEmbeddings(model=EMBEDDING_MODEL),
+    collection_name=VECTOR_STORE_NAME
+    )
+    logging.info("Vector database created")
+    return vector_db
+
+def create_retriever(vector_db, llm):
+    """Create a multi query retriever"""
+    QUERY_PROMPT = PromptTemplate(
+    input_variables=["question"],
+    template="""You are an AI language model assistant. Your task is to generate five
+    different versions of the given user question to retrieve relevant documents from
+    a vector database. By generating multiple perspectives on the user question, your
+    goal is to help the user overcome some of the limitations of the distance-based
+    similarity search. Provide these alternative questions separated by newlines.
+    Original question: {question}""",
+    )
+
+    retriever = MultiQueryRetriever.from_llm(
+        vector_db.as_retriever(), llm, prompt=QUERY_PROMPT
+    )
+    logging.info("Retriever created")
+    return retriever
+
+def create_chain(retriever, llm):
+    """create the cahin"""
+    #Rag prompt
+    template = """Answer the question based ONLY on the following context:
+    {context}
+    Question: {question}
+    """
+    prompt = ChatPromptTemplate.from_template(template)
+
+    chain = (
+        {"context": retriever, "question": RunnablePassthrough()}
+        | prompt
+        | llm
+        | StrOutputParser()
+    )
+    logging.info("Chain create successfully")
+    return chain
+
+def main():
+    #Laod and process the PDF document
+    data = ingest_pdf(DOC_PATH)
+    if data is None:
+        return
+    
+    #split document into chunks
+    chunks = split_document(data)
+
+    #create vector database
+    vector_db = create_vector_db(chunks)
+
+    #init the language model
+    llm = ChatOllama(model=MODEL_NAME)
+
+    #create the retriever
+    retriever = create_retriever(vector_db, llm)
+
+    #create the chain with preserved syntax
+    chain = create_chain(retriever, llm)
+
+    #example query
+    question = "How to report BOI?"
+
+    #get the response
+    res = chain.invoke(input=question)
+    print("Response:")
+    print(res)
+
+if __name__ == "__main__":
+    main()
