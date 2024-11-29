@@ -12,3 +12,5 @@ fastembed
 pdfplumber
 sentence-transformers
 elevenlabs
+
+#https://github.com/pdichone/ollama-fundamentals/blob/main/pdf-rag.py
